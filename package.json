@@ -1,0 +1,22 @@
+{
+  "name": "@dl-tlu/edtf-parser",
+  "version": "1.1.0",
+  "description": "EDTF parsing, validation and normalization for Digital Livonia projects (et/en). Includes DL-specific extensions to the EDTF standard.",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "files": [
+    "index.js"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "check-regex": "node check-regex.mjs"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.11"
+  },
+  "repository": "github:Digital-Livonia/edtf-parser",
+  "license": "MIT"
+}
