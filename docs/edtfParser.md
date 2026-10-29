@@ -87,19 +87,24 @@ export default function ResultsTable({ results, edtfFields, locale }) {
 
 ### Level 1 Patterns
 
-#### Before/After (Open Intervals)
+#### Before/After and Until/From (Open Intervals)
+
+`enne` / `pärast` is a **point in time** (EDTF set `[..X]` / `[X..]`, "on or before/after").
+`kuni` / `alates` is a **period** (open-ended interval). Source dates saying "enne YYYY" / "pärast YYYY"
+must be written as sets (Digital-Livonia/dl-app#277, see README).
+
 | Pattern | Näide | Eesti | Inglise |
 |---------|-------|-------|---------|
-| Enne (open start) | `../1277` | `enne 1277` | `before 1277` |
-| Enne (ilma kaldkriipsuta) | `..1277` | `enne 1277` | `before 1277` |
-| Pärast (open end) | `1985/..` | `pärast 1985` | `after 1985` |
-| Pärast (lühivorm) | `1985/` | `pärast 1985` | `after 1985` |
-| Enne YYYY, lõpp teadmata | `..1660/` | `enne 1660 - lõpp teadmata` | `before 1660 to unknown end` |
-| Enne ~YYYY, lõpp teadmata | `..1660~/` | `enne ligikaudu 1660 - lõpp teadmata` | `before approximately 1660 to unknown end` |
-| Kuni YYYY (algus teadmata) | `/1660` | `enne 1660` | `before 1660` |
+| Enne (point in time) | `[..1277]` | `enne 1277` | `before 1277` |
+| Pärast (point in time) | `[1985..]` | `pärast 1985` | `after 1985` |
+| Kuni (period, open start) | `../1277` | `kuni 1277` | `until 1277` |
+| Kuni (algus teadmata) | `/1660` | `kuni 1660` | `until 1660` |
+| Kuni (täiskuupäev) | `../1568-07-03` | `kuni 03. juuli 1568` | `until 03. July 1568` |
+| Alates (period, open end) | `1985/..` | `alates 1985` | `from 1985` |
+| Alates (lühivorm) | `1985/` | `alates 1985` | `from 1985` |
+| Enne YYYY, lõpp teadmata | `..1660/` | `enne 1660 – lõpp teadmata` | `before 1660 to unknown end` |
 
-> **Märkus:** `..1660/` on **vahemik** – kogusesse jõudis enne 1660-t ja lõpp on teadmata. See erineb `../1660`-st, mis tähendab lihtsalt "enne 1660-t" ilma jätkuta.
-| Open both ends | `..1660/` | `enne 1660 - lõpp teadmata` | `before 1660 to unknown end` |
+> **Märkus:** `..1660/` on **vahemik** – algus on avatud ja lõpp teadmata. See erineb `../1660`-st (periood, mis lõpeb 1660) ja `[..1660]`-st (ajahetk 1660 või varem).
 
 #### Uncertain/Approximate
 | Pattern | Example | Estonian | English |
@@ -122,7 +127,7 @@ export default function ResultsTable({ results, edtfFields, locale }) {
 | Kuuvahemik | `1700-01/1800-12` | `jaanuar 1700 - detsember 1800` | `January 1700 to December 1800` |
 | Täpne kuupäev kuni valik | `1541-07-23/[1556,1557]` | `23. juuli 1541 - üks järgmistest: 1556, 1557` | `23. July 1541 to one of: 1556, 1557` |
 | Enne YYYY, lõpp teadmata | `..1660/` | `enne 1660 - lõpp teadmata` | `before 1660 to unknown end` |
-| Kompleks intervall | `..1700?/1800~` | `enne umbes 1700 - ligikaudu 1800` | `before uncertain 1700 to approximately 1800` |
+| Kompleks intervall | `..1700?/1800~` | `enne arvatavasti 1700 – umbes 1800` | `before uncertain 1700 to approximately 1800` |
 
 #### Negative Years (BCE)
 | Pattern | Example | Estonian | English |
@@ -245,20 +250,21 @@ export default function SearchResults({ results, edtfFields, locale }) {
 import { parseEDTF } from './lib/edtfParser'
 
 // Avatud intervallid
-console.log(parseEDTF('../1277', 'et'))           // enne 1277
-console.log(parseEDTF('..1277', 'et'))            // enne 1277
-console.log(parseEDTF('/1660', 'et'))             // enne 1660
-console.log(parseEDTF('1552/', 'et'))             // pärast 1552
-console.log(parseEDTF('1985/..', 'et'))           // pärast 1985
+console.log(parseEDTF('../1277', 'et'))           // kuni 1277
+console.log(parseEDTF('/1660', 'et'))             // kuni 1660
+console.log(parseEDTF('[..1277]', 'et'))          // enne 1277
+console.log(parseEDTF('[1985..]', 'et'))          // pärast 1985
+console.log(parseEDTF('1552/', 'et'))             // alates 1552
+console.log(parseEDTF('1985/..', 'et'))           // alates 1985
 
 // Vahemik: enne YYYY, lõpp teadmata
 console.log(parseEDTF('..1660/', 'et'))           // enne 1660 - lõpp teadmata
 console.log(parseEDTF('..1569/', 'et'))           // enne 1569 - lõpp teadmata
-console.log(parseEDTF('..1660~/', 'et'))          // enne ligikaudu 1660 - lõpp teadmata
+console.log(parseEDTF('..1660~/', 'et'))          // enne umbes 1660 – lõpp teadmata
 
 // Vahemikud
 console.log(parseEDTF('1700~/1800~', 'et'))       // ligikaudu 1700 - ligikaudu 1800
-console.log(parseEDTF('..1700?/1800~', 'et'))     // enne umbes 1700 - ligikaudu 1800
+console.log(parseEDTF('..1700?/1800~', 'et'))     // enne arvatavasti 1700 – umbes 1800
 
 // Kuu/päev täpsus
 console.log(parseEDTF('1550-09', 'et'))           // september 1550
