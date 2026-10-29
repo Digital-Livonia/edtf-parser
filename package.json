@@ -1,6 +1,6 @@
 {
   "name": "@dl-tlu/edtf-parser",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "EDTF parsing, validation and normalization for Digital Livonia projects (et/en). Includes DL-specific extensions to the EDTF standard.",
   "type": "module",
   "main": "index.js",

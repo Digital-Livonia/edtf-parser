@@ -102,8 +102,19 @@ const cases = [
   // Long ranges inside a set stay ranges instead of listing every year (#253)
   { input: '[1300..1500,1720..1809]', locale: 'et', expected: 'üks järgmistest: 1300 – 1500, 1720 – 1809' },
   { input: '[1300..1500,1720..1809]', locale: 'en', expected: 'one of: 1300 to 1500, 1720 to 1809' },
-  { input: '[..1984]', locale: 'et', expected: 'üks järgmistest: kuni 1984' },
-  { input: '[1760-01,1760-02,1760-12..]', locale: 'en', expected: 'one of: 1760-01, 1760-02, from 1760-12' },
+  // [..X] / [X..] is a point in time ("on or before"/"on or after"), not a period (#277)
+  { input: '[..1984]', locale: 'et', expected: 'enne 1984' },
+  { input: '[..1984]', locale: 'en', expected: 'before 1984' },
+  { input: '[1984..]', locale: 'et', expected: 'pärast 1984' },
+  { input: '[1984..]', locale: 'en', expected: 'after 1984' },
+  { input: '[..1543-07-03]', locale: 'et', expected: 'enne 03. juuli 1543' },
+  { input: '[1760-01,1760-02,1760-12..]', locale: 'en', expected: 'one of: 1760-01, 1760-02, after December 1760' },
+  // Open-ended intervals stay periods; year and full date are worded the same (#277)
+  { input: '../1543', locale: 'et', expected: 'kuni 1543' },
+  { input: '../1568-07-03', locale: 'et', expected: 'kuni 03. juuli 1568' },
+  { input: '/1568-07-03', locale: 'en', expected: 'until 03. July 1568' },
+  { input: '1568-07-03/..', locale: 'et', expected: 'alates 03. juuli 1568' },
+  { input: '1568-07/..', locale: 'en', expected: 'from July 1568' },
   // Sets as interval endpoints — DL extension, not in the EDTF spec
   { input: '[1453,1465]/[1462,1473]', locale: 'et', expected: 'üks järgmistest: 1453, 1465 – üks järgmistest: 1462, 1473' },
   { input: '1450/[1462..1470]', locale: 'et', expected: '1450 – üks järgmistest: 1462 – 1470' },

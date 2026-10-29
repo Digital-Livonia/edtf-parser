@@ -13,9 +13,17 @@ see muutmata kujul.
 | Kuu / päev | `1550-09` / `1550-09-15` | september 1550 / 15. september 1550 |
 | Umbes / arvatavasti | `1550~` / `1550?` | umbes 1550 / arvatavasti 1550 |
 | Vahemik | `1700/1800` | 1700 – 1800 |
-| Kuni / alates | `../1277` / `1985/..` | kuni 1277 / alates 1985 |
+| Kuni / alates (periood) | `../1277` / `1985/..` | kuni 1277 / alates 1985 |
+| Enne / pärast (ajahetk) | `[..1543]` / `[1511..]` | enne 1543 / pärast 1511 |
 | Üks mitmest aastast | `[1556,1557]` | üks järgmistest: 1556, 1557 |
 | Üks mitmest vahemikust | `[1300..1500,1720..1809]` | üks järgmistest: 1300 – 1500, 1720 – 1809 |
+
+## Enne / pärast vs kuni / alates
+
+- **Enne / pärast** on üks ajahetk, mis jääb antud aasta ette või taha (nt tehing, surm):
+  `[..1543]` → "enne 1543", `[1511..]` → "pärast 1511".
+- **Kuni / alates** on periood (nt ametiaeg, omand): `../1543` → "kuni 1543".
+- Kui allikas ütleb "enne", ära kirjuta `../1543`: see loetakse perioodina.
 
 ## Vahemik valiku sees: `..`, mitte `/`
 

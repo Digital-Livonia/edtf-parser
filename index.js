@@ -163,8 +163,10 @@ const MAX_EXPANDED_SET_RANGE = 5
  */
 const formatSetMember = (member, locale) => {
   const m = member.trim()
-  if (m.startsWith('..')) return [`${getTranslation('until', locale)} ${m.slice(2)}`]
-  if (m.endsWith('..')) return [`${getTranslation('from', locale)} ${m.slice(0, -2)}`]
+  // [..X] / [X..] is "on or before" / "on or after" (a point in time, not a period), so
+  // it reads "enne X" / "pärast X"; only the ../X interval reads "kuni X"
+  if (m.startsWith('..')) return [`${getTranslation('before', locale)} ${parseEDTF(m.slice(2), locale)}`]
+  if (m.endsWith('..')) return [`${getTranslation('after', locale)} ${parseEDTF(m.slice(0, -2), locale)}`]
   if (!m.includes('..')) return [m]
 
   const [start, end] = m.split('..')
@@ -179,7 +181,10 @@ const formatSetMember = (member, locale) => {
 }
 
 const formatChoiceSet = (input, locale) => {
-  const choices = input.slice(1, -1).split(',').flatMap(member => formatSetMember(member, locale))
+  const members = input.slice(1, -1).split(',')
+  const choices = members.flatMap(member => formatSetMember(member, locale))
+  // A lone open-ended member ([..1543]) is a single statement, not a choice
+  if (members.length === 1 && /^\s*(\.\.[^.]+|[^.]+\.\.)\s*$/.test(members[0])) return choices[0]
   return `${getTranslation('one_of', locale)} ${choices.join(', ')}`
 }
 
@@ -451,6 +456,7 @@ export const parseEDTF = (edtfString, locale = 'et') => {
   if (input.includes('/') && !input.match(/^\d{4}-\d{2}\/\d{4}-\d{2}$/)) {
     const [start, end] = input.split('/')
     const to = getTranslation('to', locale)
+    const isOpen = (part) => part === '' || part === '..'
 
     const formatPart = (part) => {
       // Handle open intervals
@@ -506,6 +512,11 @@ export const parseEDTF = (edtfString, locale = 'et') => {
 
       return `${prefix}${result}`.trim()
     }
+
+    // One open end next to a real date: the open side says nothing about the other
+    // ("../1568-07-03" -> "kuni 03. juuli 1568", "1568-07-03/.." -> "alates 03. juuli 1568")
+    if (isOpen(start) && !isOpen(end)) return `${getTranslation('until', locale)} ${formatPart(end)}`
+    if (isOpen(end) && !isOpen(start)) return `${getTranslation('from', locale)} ${formatPart(start)}`
 
     const startFormatted = formatPart(start)
     const endFormatted = formatPart(end)

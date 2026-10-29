@@ -66,7 +66,7 @@ EDTF_REGEX.test('abc')         // false
 | `..1300` | kuni 1300 (alternatiivkuju) |
 | `[1556,1557]` | üks kahest |
 | `[1300..1500,1720..1809]` | üks kahest vahemikust (`..`, mitte `/`) |
-| `[..1984]`, `[1760-12..]` | valik avatud otsaga |
+| `[..1984]`, `[1760-12..]` | "enne 1984" / "pärast 1760. detsember": ajahetk, mis on antud väärtus või varasem/hilisem |
 | `1303/[1312,1313]` | intervall, valik lõpus (DL laiendus) |
 | `[1453,1465]/[1462,1473]` | valikud mõlemas otspunktis (DL laiendus) |
 | `..1287/1314-11-26` | avatud algus, täiskuupäev lõpus |
@@ -101,6 +101,7 @@ import { parseEDTF } from '@dl-tlu/edtf-parser'
 parseEDTF('1321?')         // → 'arvatavasti 1321'
 parseEDTF('1321~')         // → 'umbes 1321'
 parseEDTF('../1300')       // → 'kuni 1300'
+parseEDTF('[..1300]')      // → 'enne 1300'
 parseEDTF('1470/1473')     // → '1470 – 1473'
 parseEDTF('[1556,1557]')   // → 'üks järgmistest: 1556, 1557'
 parseEDTF('1985-06-11')    // → '11. juuni 1985'
@@ -135,6 +136,21 @@ isEDTFPattern('Tallinn')     // false
 ```
 
 ---
+
+## "Enne" ja "pärast" vs "kuni" ja "alates"
+
+EDTF-is pole range "enne" (välistavat otsa). Kaks kuju tähendavad eri asja (#277):
+
+| Kuju | Tähendus | Kuvatakse |
+|------|----------|-----------|
+| `../1543`, `/1543` | **periood**, mis lõpeb 1543 (kaasa arvatud) | kuni 1543 |
+| `1543/..` | **periood**, mis algab 1543 | alates 1543 |
+| `[..1543]` | **ajahetk** 1543 või varem (LoC: "on or before") | enne 1543 |
+| `[1543..]` | **ajahetk** 1543 või hiljem ("on or after") | pärast 1543 |
+
+Allika "enne YYYY" / "pärast YYYY" (tehing, surm, sünd) on ajahetk, seega kirjutada
+`[..YYYY]` / `[YYYY..]`. `../YYYY` ja `YYYY/..` jäävad perioodidele (ametiaeg,
+omandiperiood). Rangelt YYYY välistav "enne" on ainult `../(YYYY-1)-12-31`.
 
 ## Erisused EDTF standardist
 
