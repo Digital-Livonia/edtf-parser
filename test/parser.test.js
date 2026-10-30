@@ -115,6 +115,11 @@ const cases = [
   { input: '/1568-07-03', locale: 'en', expected: 'until 03. July 1568' },
   { input: '1568-07-03/..', locale: 'et', expected: 'alates 03. juuli 1568' },
   { input: '1568-07/..', locale: 'en', expected: 'from July 1568' },
+  // % = uncertain and approximate (the converter used to write the invalid ~?)
+  { input: '1500%', locale: 'et', expected: 'arvatavasti umbes 1500' },
+  { input: '1500%/..', locale: 'en', expected: 'from uncertain approximately 1500' },
+  { input: '[1500%..]', locale: 'et', expected: 'pärast arvatavasti umbes 1500' },
+  { input: '[..1480%]', locale: 'en', expected: 'before uncertain approximately 1480' },
   // Sets as interval endpoints — DL extension, not in the EDTF spec
   { input: '[1453,1465]/[1462,1473]', locale: 'et', expected: 'üks järgmistest: 1453, 1465 – üks järgmistest: 1462, 1473' },
   { input: '1450/[1462..1470]', locale: 'et', expected: '1450 – üks järgmistest: 1462 – 1470' },

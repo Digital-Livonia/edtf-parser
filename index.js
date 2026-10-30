@@ -188,6 +188,18 @@ const formatChoiceSet = (input, locale) => {
   return `${getTranslation('one_of', locale)} ${choices.join(', ')}`
 }
 
+/** "uncertain"/"approximately" words for a ?/~/% qualifier string */
+const qualifierWords = (qualifier, locale) => {
+  const words = []
+  if (/[?%]/.test(qualifier)) words.push(getTranslation('uncertain', locale))
+  if (/[~%]/.test(qualifier)) words.push(getTranslation('approximately', locale))
+  return words
+}
+
+/** "<keyword> [uncertain] [approximately] <value>" */
+const withQualifier = (key, qualifier, value, locale) =>
+  [getTranslation(key, locale), ...qualifierWords(qualifier, locale), value].join(' ')
+
 /**
  * Parse EDTF string to human-readable format
  * @param {string} edtfString - EDTF formatted date string
@@ -202,66 +214,21 @@ export const parseEDTF = (edtfString, locale = 'et') => {
   const input = edtfString.trim()
   if (!input) return input
 
-  // Pattern: ../YYYY[?~]* (until YYYY - standard EDTF open start)
-  if (input.match(/^\.\.\/\d{4}[?~]*$/)) {
-    const year = input.replace('../', '').replace(/[?~]/g, '')
-    const until = getTranslation('until', locale)
-    if (input.includes('?')) {
-      const uncertain = getTranslation('uncertain', locale)
-      return `${until} ${uncertain} ${year}`
-    }
-    if (input.includes('~')) {
-      const approx = getTranslation('approximately', locale)
-      return `${until} ${approx} ${year}`
-    }
-    return `${until} ${year}`
+  // Open-ended year intervals with optional qualifiers (? ~ %), one block for all four shapes
+  // ../YYYY, /YYYY -> kuni; YYYY/.., YYYY/ -> alates; ..YYYY/ -> enne ... lõpp teadmata
+  const openYear = input.match(/^(\.\.\/|\/)(\d{4})([?~%]*)$/)
+  if (openYear) {
+    return withQualifier('until', openYear[3], openYear[2], locale)
   }
-
-  // Pattern: /YYYY[?~]* (until YYYY - leading slash, open start)
-  if (input.match(/^\/\d{4}[?~]*$/)) {
-    const inner = input.slice(1)
-    const year = inner.replace(/[?~]/g, '')
-    const until = getTranslation('until', locale)
-    if (inner.includes('?')) return `${until} ${getTranslation('uncertain', locale)} ${year}`
-    if (inner.includes('~')) return `${until} ${getTranslation('approximately', locale)} ${year}`
-    return `${until} ${year}`
+  const openEndYear = input.match(/^(\d{4})([?~%]*)(\/\.\.|\/)$/)
+  if (openEndYear) {
+    return withQualifier('from', openEndYear[2], openEndYear[1], locale)
   }
-
-  // Pattern: YYYY[?~]*/ (from YYYY - trailing slash, open end)
-  if (input.match(/^\d{4}[?~]*\/$/)) {
-    const inner = input.replace(/\/$/, '')
-    const year = inner.replace(/[?~]/g, '')
-    const from = getTranslation('from', locale)
-    if (inner.includes('~')) return `${from} ${getTranslation('approximately', locale)} ${year}`
-    if (inner.includes('?')) return `${from} ${getTranslation('uncertain', locale)} ${year}`
-    return `${from} ${year}`
-  }
-
-  // Pattern: ..YYYY[?~]*/ (before YYYY, unknown end)
-  if (input.match(/^\.\..+\d[?~]*\/$/)) {
-    const inner = input.replace(/^\.\./, '').replace(/\/$/, '')
-    const year = inner.replace(/[?~]/g, '')
-    const before = getTranslation('before', locale)
-    const unknownEnd = getTranslation('uncertain_end', locale)
+  const beforeOpenEnd = input.match(/^\.\.(.+?\d)([?~%]*)\/$/)
+  if (beforeOpenEnd) {
     const to = getTranslation('to', locale)
-    if (inner.includes('?')) return `${before} ${getTranslation('uncertain', locale)} ${year} ${to} ${unknownEnd}`
-    if (inner.includes('~')) return `${before} ${getTranslation('approximately', locale)} ${year} ${to} ${unknownEnd}`
-    return `${before} ${year} ${to} ${unknownEnd}`
-  }
-
-  // Pattern: YYYY[?~]*/.. (from YYYY - standard EDTF open end)
-  if (input.match(/^\d{4}[?~]*\/\.\.$/)) {
-    const year = input.replace(/[?~]*\/\.\.$/, '')
-    const from = getTranslation('from', locale)
-    if (input.includes('~')) {
-      const approx = getTranslation('approximately', locale)
-      return `${from} ${approx} ${year}`
-    }
-    if (input.includes('?')) {
-      const uncertain = getTranslation('uncertain', locale)
-      return `${from} ${uncertain} ${year}`
-    }
-    return `${from} ${year}`
+    const unknownEnd = getTranslation('uncertain_end', locale)
+    return `${withQualifier('before', beforeOpenEnd[2], beforeOpenEnd[1], locale)} ${to} ${unknownEnd}`
   }
 
   // Pattern: YYYY? (uncertain year)
@@ -278,12 +245,10 @@ export const parseEDTF = (edtfString, locale = 'et') => {
     return `${approx} ${year}`
   }
 
-  // Pattern: YYYY?~ or YYYY~? (uncertain and approximate)
-  if (input.match(/^\d{4}([?~]){2}$/)) {
-    const year = input.replace(/[?~]/g, '')
-    const uncertain = getTranslation('uncertain', locale)
-    const approx = getTranslation('approximately', locale)
-    return `${uncertain} ${approx} ${year}`
+  // Pattern: YYYY?~ or YYYY~? or YYYY% (uncertain and approximate)
+  if (input.match(/^\d{4}([?~]{2}|%)$/)) {
+    const year = input.slice(0, 4)
+    return [...qualifierWords(input.slice(4), locale), year].join(' ')
   }
 
   // Pattern: -YYYY (BCE/negative year)
@@ -467,14 +432,10 @@ export const parseEDTF = (edtfString, locale = 'et') => {
         return getTranslation('uncertain_end', locale)
       }
 
-      // Handle ..YYYY[?~]* prefix (open "before YYYY" in a complex interval)
-      if (part.match(/^\.\..+\d[?~]*$/)) {
+      // Handle ..YYYY[?~%]* prefix (open "before YYYY" in a complex interval)
+      if (part.match(/^\.\..+\d[?~%]*$/)) {
         const inner = part.replace(/^\.\./, '')
-        const year = inner.replace(/[?~]/g, '')
-        const before = getTranslation('before', locale)
-        if (inner.includes('?')) return `${before} ${getTranslation('uncertain', locale)} ${year}`
-        if (inner.includes('~')) return `${before} ${getTranslation('approximately', locale)} ${year}`
-        return `${before} ${year}`
+        return withQualifier('before', inner.replace(/[^?~%]/g, ''), inner.replace(/[?~%]/g, ''), locale)
       }
 
       // Handle choice sets [YYYY,YYYY]
