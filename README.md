@@ -148,6 +148,10 @@ EDTF-is pole range "enne" (välistavat otsa). Kaks kuju tähendavad eri asja (#2
 | `[..1543]` | **ajahetk** 1543 või varem (LoC: "on or before") | enne 1543 |
 | `[1543..]` | **ajahetk** 1543 või hiljem ("on or after") | pärast 1543 |
 
+**Kus kumb (DL andmed):** sünd, surm ja kinnisvara/pärusraamatu kuupäevad: avatud ots on alati
+enne/pärast → `[..X]` / `[X..]`. Rollide ja ametite (`people_events`) algus või lõpp on periood →
+`../X` ("kuni") ja `X/..` ("alates"); neid ei tehta hulgaks.
+
 Allika "enne YYYY" / "pärast YYYY" (tehing, surm, sünd) on ajahetk, seega kirjutada
 `[..YYYY]` / `[YYYY..]`. `../YYYY` ja `YYYY/..` jäävad perioodidele (ametiaeg,
 omandiperiood). Rangelt YYYY välistav "enne" on ainult `../(YYYY-1)-12-31`.

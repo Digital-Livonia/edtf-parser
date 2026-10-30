@@ -25,6 +25,10 @@ see muutmata kujul.
 - **Kuni / alates** on periood (nt ametiaeg, omand): `../1543` → "kuni 1543".
 - Kui allikas ütleb "enne", ära kirjuta `../1543`: see loetakse perioodina.
 
+**Rollid ja ametid** (sündmused): kui roll või amet algas või lõppes teadaval ajal, kasuta perioodi:
+`../1525` ("kuni 1525") ja `1478/..` ("alates 1478"). Sünni, surma ja kinnisvara kuupäevadel on
+"enne"/"pärast" alati `[..X]` / `[X..]`.
+
 ## Vahemik valiku sees: `..`, mitte `/`
 
 Nurksulgude (valiku) sees märgitakse vahemik **kahe punktiga**:
